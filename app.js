@@ -1,11 +1,9 @@
 import express from 'express'
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 import config from './config.js'
-console.log('Config:', config); // <-- 
 import cors from 'cors'
-
-import userRouter from './src/routes/users.router.js';
-
+import userRouter from './src/routes/users.router.js'
+import setupSwagger from './swagger.js'
 
 const app = express();
 const PORT = config.port
@@ -16,7 +14,7 @@ app.use(cors());
 app.use('/api/users', userRouter)
 
 
-
+setupSwagger(app);
 mongoose.connect(config.mongourl)
     .then(() => {
         console.log("Conectado a la Base de Datos")

@@ -12,21 +12,73 @@ router.post('/register', usersController.register)
  *     summary: Registra un nuevo usuario
  *     tags:
  *       - Users
+ *     description: Registra un nuevo usuario con los datos obligatorios de email, nombre, alias y contraseña.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - name
+ *               - alias
+ *               - password
  *             properties:
  *               email:
  *                 type: string
+ *                 description: La dirección de correo electrónico del usuario.
+ *                 example: ada@ejemplo.com
+ *               name:
+ *                 type: string
+ *                 description: El nombre completo del usuario.
+ *                 example: Ada Lovelace
+ *               alias:
+ *                 type: string
+ *                 description: Un alias único para el usuario.
+ *                 example: alovelace
  *               password:
  *                 type: string
+ *                 description: La contraseña del usuario (mínimo 8 caracteres).
+ *                 format: password
+ *                 example: SprSfePwd023890!
  *     responses:
- *       201:
- *         description: Usuario registrado exitosamente
+ *       '200':
+ *         description: Usuario creado exitosamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *       '400':
+ *         description: Solicitud incorrecta, faltan datos o el usuario ya existe.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *       '500':
+ *         description: Error interno del servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 error:
+ *                   type: string
+ *                   example: Internal Server Error
  */
+router.post('/register', usersController.register);
+
 router.post('/login', usersController.login)
 /**
  * @swagger

@@ -10,7 +10,6 @@ const PORT = config.port
 
 app.use(express.json({ limit: '100mb' }));
 app.use(cors());
-
 app.use('/api/users', userRouter)
 
 

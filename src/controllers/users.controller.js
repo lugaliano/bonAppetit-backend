@@ -7,7 +7,7 @@ async function register(req, res) {
     if ( !email || !name || !alias || !password) return res.status(400).send({status: "error", error: "Email, name, alias and password are required for register"});
     try {
         const exist = await usersModel.findOne({ $or: [{ email }, { alias }] });
-        if(exist) return res.status(400).send({ status: "error", error: "There is an user already registered with that email or alias."});
+        if(exist) return res.status(400).send({ status: "error"});
         const newUser = {
             email,
             name,
@@ -16,7 +16,7 @@ async function register(req, res) {
             favouriteRecipes: []
         };
         let result = await usersModel.create(newUser);
-        return res.status(200).send({ status: "success", message: "User created successfully", payload: result });
+        return res.status(200).send({ status: "success"});
     } catch (error) {
         return res.status(500).send({ status: 'error',error: error.message});
     }

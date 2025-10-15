@@ -29,7 +29,7 @@ async function login(req, res) {
     }
 
     try {
-        const user = await usersModel.findOne({ email });
+        const user = await usersModel.findOne({ email: { $eq: email } });
         if (!user) {
             return res.status(400).send({ status: 'error', error: 'Invalid email or password' });
         }

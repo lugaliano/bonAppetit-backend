@@ -1,10 +1,21 @@
 import express from 'express';
 import usersController from '../controllers/users.controller.js'
+import rateLimit from 'express-rate-limit';
+
+// Limit to 5 registration attempts per hour per IP
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: {
+    status: 'error',
+    error: 'Too many accounts created from this IP, please try again after an hour.'
+  }
+});
 
 const router = express.Router();
 
 
-router.post('/register', usersController.register)
+router.post('/register', registerLimiter, usersController.register)
 /**
  * @swagger
  * /api/users/register:
@@ -77,7 +88,7 @@ router.post('/register', usersController.register)
  *                   type: string
  *                   example: Internal Server Error
  */
-router.post('/register', usersController.register);
+router.post('/register', registerLimiter, usersController.register);
 
 router.post('/login', usersController.login)
 /**

@@ -4,7 +4,7 @@ import usersModel from '../dao/users.model.js'
 
 async function register(req, res) {
     const { email, name, alias, password } = req.body;
-    if ( !email || !name || !alias || !password) return res.status(400).send({status: "error", error: "Email, name, alias and password are required for register"});
+    if ( !email || !name || !alias || !password) return res.status(400).send({status: "error", error: "Invalid registration data"});
     try {
         const exist = await usersModel.findOne({ $or: [{ email }, { alias }] });
         if(exist) return res.status(400).send({ status: "error"});
@@ -18,7 +18,7 @@ async function register(req, res) {
         let result = await usersModel.create(newUser);
         return res.status(200).send({ status: "success"});
     } catch (error) {
-        return res.status(500).send({ status: 'error',error: error.message});
+        return res.status(500).send({ status: 'error', message: "Internal Server Error"});
     }
 }
 
@@ -31,11 +31,11 @@ async function login(req, res) {
     try {
         const user = await usersModel.findOne({ email });
         if (!user) {
-            return res.status(400).send({ status: 'error', error: 'No user found with that email' });
+            return res.status(400).send({ status: 'error', error: 'Invalid email or password' });
         }
 
         if (!isValidPassword(user, password)) {
-            return res.status(400).send({ status: 'error', error: 'Incorrect password' });
+            return res.status(400).send({ status: 'error', error: 'Invalid email or password' });
         }
 
         const userWithoutPassword = { ...user.toObject() };
@@ -67,7 +67,7 @@ async function sendChangePasswordVerificationCode(req, res) {
         if (!exist)
             return res.status(400).send({
                 status: "error",
-                error: "There isn't any user registered with that email."
+                error: "If an account exists with that email, a verification code has been sent."
             });
 
         const verificationCode = Math.floor(100000 + Math.random() * 900000);
@@ -97,7 +97,7 @@ async function sendChangePasswordVerificationCode(req, res) {
 
         return res.status(200).send({
             status: "success",
-            message: `Verification code sent to ${email}.`
+            message: "If an account exists with that email, a verification code has been sent."
         });
     } catch (error) {
         return res.status(500).send({
@@ -113,15 +113,16 @@ async function verifyChangePasswordVerificationCode(req, res){
     if( !verificationCode || !email ) return res.status(400).send({status: "error", error: "A verification code and an email is required to change your password."});
     try {
         const exist = await usersModel.findOne({ email });
-        if (!exist) return res.status(400).send({ status: "error", error: "There isn't any user registered with that email."});      
+        if (!exist) return res.status(400).send({ status: "error", error: "Invalid verification attempt."});      
         
         if (exist.resetCode !== verificationCode || Date.now() > exist.resetCodeExpires) {
-            return res.status(400).send({ status: "error", error: "Invalid verification code." });
+            return res.status(400).send({ status: "error", error: "Invalid verification attempt." });
         }
-
+        
         return res.status(200). send({status: "success", message: 'Verification code is correct.'});
+
     } catch (error) {
-        return res.status(500).send({ status: 'error',error: error.message});
+        return res.status(500).send({ status: 'error', message: "Internal Server Error" });
     }
 }
 
@@ -131,19 +132,19 @@ async function changePassword(req, res){
     try {
         const user = await usersModel.findOne({ email });
         
-        if (!user) return res.status(400).send({ status: "error", error: "There isn't any user registered with that email." });
+        if (!user) return res.status(400).send({ status: "error", error: "Password reset failed." });
 
         if (user.resetCode !== verificationCode || !user.resetCodeExpires || Date.now() > user.resetCodeExpires) {
-            return res.status(400).send({ status: "error", error: "Invalid verification code." });
+            return res.status(400).send({ status: "error", error: "Password reset failed." });
         }
 
-        const result = await usersModel.updateOne({ email },
+        const result = await usersModel.updateOne({ email: { $eq: email } },
             {
                 $set: { password: createHash(newPassword) },
                 $unset: { resetCode: "", resetCodeExpires: "" }
             }
         );
-
+ 
         return res.status(200).send({ status: "success", message: "Password updated successfully."});
 
     } catch (error) {
@@ -155,7 +156,7 @@ async function getUser(req, res) {
     const { uid } = req.params;
     try{
         const user = await usersModel.findOne({ _id: uid }).select('-password');
-        if (!user) return res.status(400).send({ status: "error", error: "There isn't any user with that id." });
+        if (!user) return res.status(400).send({ status: "error", error: "User not found" });
         return res.status(200).send({ status: "success", user: user });
     }catch(error) {
         return res.status(500).send({ status: 'error',error: error.message});

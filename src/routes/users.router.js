@@ -12,6 +12,16 @@ const registerLimiter = rateLimit({
   }
 });
 
+// Limit to 5 password change attempts per hour per IP
+const changePasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: {
+    status: 'error',
+    error: 'Too many password change attempts from this IP, please try again after an hour.'
+  }
+});
+
 const router = express.Router();
 
 
@@ -157,7 +167,8 @@ router.post('/verify-password-change-verification-code', usersController.verifyC
  *       200:
  *         description: Código verificado
  */
-router.post('/change-password', usersController.changePassword)
+
+router.post('/change-password', changePasswordLimiter, usersController.changePassword)
 /**
  * @swagger
  * /api/users/change-password:
